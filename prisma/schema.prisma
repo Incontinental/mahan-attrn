@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  STORE_MANAGER
+  ORDER_OPERATOR
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PLACED
+  PENDING_PAYMENT
+  PAID
+  PREPARING
+  HANDED_TO_CARRIER
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  phone String @unique
+  name String?
+  email String? @unique
+  passwordHash String
+  role Role @default(CUSTOMER)
+  blocked Boolean @default(false)
+  createdAt DateTime @default(now())
+  addresses Address[]
+  orders Order[]
+  reviews Review[]
+  favorites Favorite[]
+}
+model Address {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  fullName String
+  phone String
+  province String
+  city String
+  line String
+  postalCode String
+}
+model Category {
+  id Int @id @default(autoincrement())
+  slug String @unique
+  name String
+  description String?
+  imageUrl String?
+  sort Int @default(0)
+  parentId Int?
+  parent Category? @relation("Sub", fields: [parentId], references: [id])
+  children Category[] @relation("Sub")
+  products Product[]
+}
+model Product {
+  id Int @id @default(autoincrement())
+  slug String @unique
+  name String
+  description String
+  ingredients String?
+  origin String?
+  storage String?
+  warnings String?
+  price Int
+  salePrice Int?
+  stock Int @default(0)
+  sales Int @default(0)
+  active Boolean @default(true)
+  featured Boolean @default(false)
+  isNew Boolean @default(false)
+  imageUrl String?
+  seoTitle String?
+  seoDesc String?
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id])
+  variants ProductVariant[]
+  reviews Review[]
+  favorites Favorite[]
+  orderItems OrderItem[]
+  createdAt DateTime @default(now())
+}
+model ProductVariant {
+  id Int @id @default(autoincrement())
+  productId Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label String
+  price Int
+  stock Int @default(0)
+}
+model Order {
+  id Int @id @default(autoincrement())
+  number String @unique
+  userId Int?
+  user User? @relation(fields: [userId], references: [id])
+  status OrderStatus @default(PLACED)
+  total Int
+  shippingCost Int @default(0)
+  couponId Int?
+  coupon Coupon? @relation(fields: [couponId], references: [id])
+  trackingCode String?
+  shipName String
+  shipPhone String
+  shipProvince String
+  shipCity String
+  shipLine String
+  shipPostal String
+  note String?
+  idempotencyKey String? @unique
+  createdAt DateTime @default(now())
+  items OrderItem[]
+  payments Payment[]
+}
+model OrderItem {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+  variantLabel String?
+  unitPrice Int
+  qty Int
+}
+model Payment {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id])
+  gateway String
+  authority String? @unique
+  refId String?
+  amount Int
+  verified Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Review {
+  id Int @id @default(autoincrement())
+  productId Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  rating Int
+  body String?
+  approved Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Favorite {
+  userId Int
+  productId Int
+  user User @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([userId, productId])
+}
+model Coupon {
+  id Int @id @default(autoincrement())
+  code String @unique
+  percent Int?
+  amount Int?
+  minTotal Int @default(0)
+  maxUses Int?
+  used Int @default(0)
+  startsAt DateTime?
+  endsAt DateTime?
+  active Boolean @default(true)
+  orders Order[]
+}
+model ArticleCategory {
+  id Int @id @default(autoincrement())
+  slug String @unique
+  name String
+  articles Article[]
+}
+model Article {
+  id Int @id @default(autoincrement())
+  slug String @unique
+  title String
+  summary String?
+  body String
+  imageUrl String?
+  author String?
+  published Boolean @default(false)
+  seoTitle String?
+  seoDesc String?
+  categoryId Int?
+  category ArticleCategory? @relation(fields: [categoryId], references: [id])
+  createdAt DateTime @default(now())
+}
+model Banner {
+  id Int @id @default(autoincrement())
+  title String
+  subtitle String?
+  imageUrl String?
+  link String?
+  sort Int @default(0)
+  active Boolean @default(true)
+}
+model Setting {
+  key String @id
+  value String
+}

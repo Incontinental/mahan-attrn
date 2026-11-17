@@ -1,0 +1,9 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+html{scroll-behavior:smooth}
+body{font-family:Vazirmatn,Tahoma,sans-serif;background:#F4EFE4;color:#2b2b24;-webkit-tap-highlight-color:transparent}
+.btn{display:inline-block;padding:.7rem 1.5rem;border-radius:.9rem;background:#354B36;color:#F4EFE4;transition:background .2s;text-align:center}
+.btn:hover{background:#647C51}
+.btn-o{background:transparent;border:1px solid #F4EFE4}
+.btn-o:hover{background:#F4EFE4;color:#354B36}
+.inp{width:100%;border:1px solid #E8DDC8;background:#fff;border-radius:.8rem;padding:.65rem .9rem;font-size:16px}
+.pb-safe{padding-bottom:env(safe-area-inset-bottom)}
